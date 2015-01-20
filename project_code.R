@@ -6,6 +6,15 @@
 
 # "Is an automatic or manual transmission better for MPG"
 # "Quantify the MPG difference between automatic and manual transmissions"
+
+# order to do things in:
+  # set up working environment and read in data
+  # v. simple quantification of data - summary and simple violin plot?
+  # exploratory - do a pairs plot
+  # fit a few models - select one and provide justifcation
+  # do some diagnostics on the selected models - residual plot, other diagnostic
+  # answer the question - provide expected change in MPG with confidence interval!
+
 ################################################################################
 # Step 0 - Set up environment - packages and working directory
 ################################################################################
@@ -21,8 +30,8 @@ rm(dir)
 # Step 1 - Load data
 ################################################################################
 data(mtcars)
-mtcars <- mtcars %>%
-          mutate(trans = as.factor(ifelse(am==0,"Automatic","Manual")))
+# mtcars <- mtcars %>%
+#           mutate(trans = as.factor(ifelse(am==0,"Automatic","Manual")))
 
 ################################################################################
 # Step 2 - initial explorations
@@ -50,21 +59,14 @@ mtcars %>%
   xlab("Transmission Type")+
   ylab("Miles per Gallon")
 
-pairs <- ggpairs(mtcars)
+pairs <- ggpairs(mtcars, axisLabels = "internal", colour = "steelblue")
 
 fit_am <- lm(mpg ~ am, data = mtcars)
-summary(fit_am)
+
 fit_amResid <- fit_am$resid
-plot(fit_amResid, mtcars$mpg)
+
 
 fit_all <- lm(mpg ~ ., data = mtcars)
-summary(fit_all)
+
 
 fit_refined <- lm(mpg ~ wt+am, data = mtcars)
-summary(fit_refined)
-fit_refinedResid <- fit_refined$resid
-plot(fit_refinedResid, mtcars$mpg)
-
-
-
-
