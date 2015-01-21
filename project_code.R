@@ -131,44 +131,49 @@ fitRefRes <- fortify(fitRef)
 
 
 # resid vs. fitted
-residFit <- ggplot(fitRefRes, aes(.fitted, .resid)) +
-  geom_point(colour = "steelblue")  +
-  geom_smooth(method = "loess", se=FALSE, colour = "firebrick") +
-  geom_hline(linetype=2, size=.2) +
-  scale_x_continuous("Fitted Values") +
-  scale_y_continuous("Residual") +
-  ggtitle("Residuals vs Fitted")+
-  theme_minimal()
-
+  residFit <- ggplot(fitRefRes, aes(.fitted, .resid))+
+    geom_point(colour = "steelblue")+
+    geom_smooth(method = "loess", se=FALSE, colour = "firebrick")+
+    geom_hline(linetype=2, size=.2)+
+    scale_x_continuous("Fitted Values")+
+    scale_y_continuous("Residual")+
+    ggtitle("Residuals vs Fitted")+
+    theme_minimal()
+  
 # normal Q-Q
-a <- quantile(fitRefRes$.stdresid, c(0.25, 0.75))
-b <- qnorm(c(0.25, 0.75))
-slope <- diff(a)/diff(b)
-int <- a[1] - slope * b[1]
-qq <- ggplot(fitRefRes, aes(sample=.resid)) +
-  stat_qq(colour = "steelblue") +
-  geom_abline(slope=slope, intercept=int, colour = "firebrick") +
-  scale_x_continuous("Theoretical Quantiles") +
-  scale_y_continuous("Standardized Residuals") +
-  theme_minimal()+
-  ggtitle("Normal Q-Q")
-
-
-# Scale -location (stanardised resid vs. fitted)
+  a <- quantile(fitRefRes$.stdresid, c(0.25, 0.75))
+  b <- qnorm(c(0.25, 0.75))
+  slope <- diff(a)/diff(b)
+  int <- a[1] - slope * b[1]
+  qq <- ggplot(fitRefRes, aes(sample=.resid)) +
+    stat_qq(colour = "steelblue") +
+    geom_abline(slope=slope, intercept=int, colour = "firebrick") +
+    scale_x_continuous("Theoretical Quantiles") +
+    scale_y_continuous("Standardized Residuals") +
+    theme_minimal()+
+    ggtitle("Normal Q-Q")
+  
+  
+  # Scale -location (stanardised resid vs. fitted)
 standFit <- ggplot(fitRefRes, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(colour = "steelblue") +
-  geom_smooth(se=FALSE, method = "loess", colour = "firebrick") +
-  scale_x_continuous("Fitted Values") +
-  scale_y_continuous("Root of Standardized Residuals") +
-  theme_minimal()+
-  ggtitle("Scale-Location")
-
-# residuals vs. leverage
+    geom_point(colour = "steelblue") +
+    geom_smooth(se=FALSE, method = "loess", colour = "firebrick") +
+    scale_x_continuous("Fitted Values") +
+    scale_y_continuous("Root of Standardized Residuals") +
+    theme_minimal()+
+    ggtitle("Scale-Location")
+  
+  # residuals vs. leverage
 residLev <- ggplot(fitRefRes, aes(.hat, .stdresid)) +
-  geom_point(colour = "steelblue") +
-  geom_smooth(se=FALSE, colour = "firebrick", method = "loess") +
-  geom_hline(linetype=2, size=.2) +
-  scale_x_continuous("Leverage") +
-  scale_y_continuous("Standardized Residuals")+
-  ggtitle("Residuals vs. Leverage")+
-  theme_minimal()
+    geom_point(colour = "steelblue") +
+    geom_smooth(se=FALSE, colour = "firebrick", method = "loess") +
+    geom_hline(linetype=2, size=.2) +
+    scale_x_continuous("Leverage") +
+    scale_y_continuous("Standardized Residuals")+
+    ggtitle("Residuals vs. Leverage")+
+    theme_minimal()
+
+plots <- list(residFit, qq, standFit, residLev)
+do.call("grid.arrange",c(plots))
+
+
