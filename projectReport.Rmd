@@ -1,19 +1,13 @@
 ---
-output: pdf_document
+output:
+  pdf_document: default
+  html_document: null
+  word_document: default
 ---
+
 # Speedy Analytics
 ### An analysis of the effects of transmission on car miles per gallon
 ##### Jim Leach 
-
-********************************************************************************
-
-#### Table of Contents
-
-1. Executive Summary
-2. Description of approach
-3. Analysis results
-4. Conclusion
-5. Appendices
 
 ********************************************************************************
 ### Executive Summary
@@ -30,7 +24,7 @@ Diagnostics were performed on the final model and show it to be appropriate for
 addressing these questions. 
 
 A simple comparison of the mean miles per gallon between automatic and manual cars
-reveals a statistically significant difference ($p$-value less than 0.05) 
+reveals a statistically significant difference ($p$-value less than 0.05).
 
 The model shows that a [TO DO] transmission provides a better (i.e. larger)
 miles per gallon value than does automatic. Quantitatively, manual transmission
@@ -52,9 +46,9 @@ library("GGally", quietly = T)
 library("MASS", quietly = T)
 library("xtable", quietly = T)
 
-dir <- "C:/Users/Jleach1/Documents/R/regression_models"
-setwd(dir)
-rm(dir)
+# dir <- "C:/Users/Jleach1/Documents/R/regression_models"
+# setwd(dir)
+# rm(dir)
 
 data(mtcars)
 mtcars$am <- factor(mtcars$am)
@@ -155,11 +149,14 @@ coefs %>% xtable
 
 The following observations are made:
 
-* Holding the *weight* and *qsec* confounders constant, an increase of `r coefs[2,1] %>% round(2) %>% I()` miles per gallon (`r coefs[2,2] %>% round(2) %>% I()` - `r coefs[2,3] %>% round(2) %>% I()`) is expected for manual cars over automatics.
+* Holding the *weight* and *qsec* confounders constant, an increase of `r coefs[2,1] %>% round(2) %>% I()` miles per gallon [`r coefs[2,2] %>% round(2) %>% I()`, `r coefs[2,3] %>% round(2) %>% I()`] is expected for manual cars over automatics.
 * This is a statistically significant result with a $p$-value of `r coefs[2,6] %>% round(3)`.
-* An increase in *weight* for a given car has a larger absolute effect than transmission, generating a descrease of `r coefs[3,1] %>% round(2) %>% I()`(`r coefs[3,2] %>% round(2) %>% I()` - `r coefs[3,3] %>% round(2) %>% I()`) miles per gallon per unit increase. 
-* *qsec* also has a large effect on miles per gallon, with an increase of `r coefs[4,1] %>% round(2) %>% I()` (`r coefs[4,2] %>% round(2) %>% I()` - `r coefs[4,3] %>% round(2) %>% I()`) miles per gallon per 1 second increase in *qsec*.
+* An increase in *weight* for a given car has a larger absolute effect than transmission, generating a descrease of `r coefs[3,1] %>% round(2) %>% I()`[`r coefs[3,2] %>% round(2) %>% I()`, `r coefs[3,3] %>% round(2) %>% I()`] miles per gallon per unit increase. 
+* *qsec* also has a large effect on miles per gallon, with an increase of `r coefs[4,1] %>% round(2) %>% I()` [`r coefs[4,2] %>% round(2) %>% I()`, `r coefs[4,3] %>% round(2) %>% I()`] miles per gallon per 1 second increase in *qsec*.
 * The coefficients for *wt* and *qsec* are of an increased statistical significance over transmission, with $p$-values of `r coefs[3,6] %>% round(3)` and `r coefs[4,6] %>% round(3)` respectively.
+* The model has an adjusted $R^2$ value of `r (fitRef %>% summary)$r.squared %>% round(3)`, meaning that a large proportion of the variation in the data is being accounted for by the model.
+
+It should be noted that diagnostics of the model fit were performed. 
 
 
 
