@@ -29,6 +29,9 @@ dataset. Exploratory data analysis was performed and a final model selected.
 Diagnostics were performed on the final model and show it to be appropriate for
 addressing these questions. 
 
+A simple comparison of the mean miles per gallon between automatic and manual cars
+reveals a statistically significant difference ($p$-value less than 0.05) 
+
 The model shows that a [TO DO] transmission provides a better (i.e. larger)
 miles per gallon value than does automatic. Quantitatively, manual transmission
 results in a [TO DO VALUE HERE - include confidence interval!] [TO DO] in
