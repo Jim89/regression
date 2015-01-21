@@ -1,0 +1,164 @@
+---
+output: pdf_document
+---
+# Speedy Analytics
+### An analysis of the effects of transmission on car miles per gallon
+##### Jim Leach 
+
+********************************************************************************
+
+#### Table of Contents
+
+1. Executive Summary
+2. Description of approach
+3. Analysis results
+4. Conclusion
+5. Appendices
+
+********************************************************************************
+### Executive Summary
+
+This report addresses two key questions:
+
+1. Is an automatic or manual transmission better for MPG?; and
+2. Quantify the difference between automatic and manual transmissions.
+
+To address these two questions, a simple linear regression has been performed 
+on the [*mtcars*](http://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) 
+dataset. Exploratory data analysis was performed and a final model selected. 
+Diagnostics were performed on the final model and show it to be appropriate for
+addressing these questions. 
+
+The model shows that a [TO DO] transmission provides a better (i.e. larger)
+miles per gallon value than does automatic. Quantitatively, manual transmission
+results in a [TO DO VALUE HERE - include confidence interval!] [TO DO] in
+miles per gallon compared to automatic.
+
+********************************************************************************
+### Description of approach
+
+#### Data load and exploration:
+
+The set of packages to be used during the analysis (Appendix 2) were loaded and 
+the data read in to R. 
+```{r loadPack&Dat, echo=FALSE,results='hide',message=FALSE}
+library("dplyr", quietly = T)
+library("ggplot2", quietly = T)
+library("magrittr", quietly = T)
+library("GGally", quietly = T)
+library("MASS", quietly = T)
+library("xtable", quietly = T)
+
+dir <- "C:/Users/Jleach1/Documents/R/regression_models"
+setwd(dir)
+rm(dir)
+
+data(mtcars)
+mtcars$am <- factor(mtcars$am)
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$trans <- factor(ifelse(mtcars$am == 0, "Automatic", "Manual"))
+```
+
+A quick summary of the differences in miles per gallon accross transmission types
+was created and viewed:
+```{r summaryDat, echo = F, results = 'asis'}
+options(xtable.comment = FALSE)
+summ_simple <- mtcars %>%
+               mutate(trans = as.factor(ifelse(am==0,"Automatic","Manual"))) %>%
+               group_by(trans) %>%
+               summarise(Av.MPG = mean(mpg),
+                         Stand.Dev = sd(mpg),
+                          Number.Cars = n(),
+                          Stand.Error = Stand.Dev/sqrt(Number.Cars))
+summ_simple[,c(1,2,3,5)] %>% xtable
+
+violin <-
+mtcars %>%
+  ggplot(aes(x = as.factor(ifelse(am==0,"Automatic","Manual")),
+             y = mpg, 
+             fill = as.factor(ifelse(am==0,"Automatic","Manual"))))+
+  geom_violin()+
+  geom_point()+
+  theme_minimal()+
+  scale_fill_manual(values = c("steelblue","firebrick"))+
+  theme(legend.position = "none",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank())+
+  xlab("Transmission Type")+
+  ylab("Miles per Gallon")
+
+auto <- mtcars[mtcars$am == 0,1]
+manual <- mtcars[mtcars$am == 1,1]
+t <- t.test(manual, auto)
+```
+
+From this summary, we see that the average miles per gallon is `r I(round(summ_simple[1,2],2))` for an `r I(summ_simple[1,1])` car and `r I(round(summ_simple[2,2],2))` for a `r I(summ_simple[2,1])` car. The difference in these means was compared using a $t$-test and was found to lie between
+`r I(round(t$conf.int[1],2))` and `r I(round(t$conf.int[2],2))` with a $p$-value of `r I(round(t$p.value,4))`. Therefore the difference in means is `r ifelse(t$p.value <= 0.05, "significant", "insignificant")` and so we `r ifelse(t$p.value <= 0.05,"reject the null hypothesis","fail to reject the null hypothesis")` (i.e. that the difference in means is 0).
+
+A violin plot of the miles per gallon values for each transmission type is shown 
+as Figure 1 in Appendix 3.
+
+From the summary and the plot it is seen that that cars with manual transmission
+have a greater average mies per gallon than for automatic cars, but a greater 
+variance of miles per gallon values. To quantify the strength of this relationship,
+and to investigate the effect of other variables on the miles per gallon value, a
+model must be created.
+
+#### Model selection:
+
+The [*mtcars*](http://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html)
+data set contains a number of variables that could have an effect on the miles per
+gallon value.
+
+In the context of this report, it is assumed that some assumptions could be made as to
+which variables may have a significant effect on a car's miles per gallon (in addition to transmission). These variables are:
+
+* weight (*wt*);
+* horsepower (*hp*);
+* displacement (*disp*) - a measure of engine size and power;
+* number of cyclinders (*cyl*); and
+* time to drive 1/4 mile (*qsec*) - another measure of engine power.
+
+The first model that was created simply looked at the relationship between miles per gallon and *all* of these variables to assess which have a large effect on miles per gallon. Rather than 
+manually fit multiple models to the data, automated stepwise regression was performed using these variables to find the best combination of them.
+
+```{r initModel, echo=FALSE, results='hide', message=FALSE}
+fitAll <- lm(mpg ~ trans + wt + hp + disp + factor(cyl) + qsec ,data = mtcars)
+step <- stepAIC(fitAll)
+aov <- step$anova
+```
+
+This was done using the `stepAIC()` function from the `MASS` package. This gives 
+a final model that only includes transmission, weight and *qsec* (time to drive 
+1/4 mile) as significant variables to use in the model. Therefore the final model
+was built using only these variables and is described by the formula:
+
+$mpg = \beta_{0} + \beta_{1}\times$$am + \beta_{2}\times$$wt + \beta_{3}\times$$qsec$
+
+#### Model Output:
+
+The below table presents the results from the application of this model to the data:
+
+```{r finalModel, echo=FALSE, results = 'asis'}
+options(xtable.comment = FALSE)
+fitRef <- lm(formula(step), data = mtcars)
+intervals <- confint(fitRef)
+coefs <- summary(fitRef)$coef %>% as.data.frame %>% cbind(intervals)
+coefs <- coefs[,c(1,5,6,2:4)]
+coefs %>% xtable
+
+```
+
+The following observations are made:
+
+* Holding the *weight* and *qsec* confounders constant, an increase of `r coefs[2,1] %>% round(2) %>% I()` miles per gallon (`r coefs[2,2] %>% round(2) %>% I()` - `r coefs[2,3] %>% round(2) %>% I()`) is expected for manual cars over automatics.
+* This is a statistically significant result with a $p$-value of `r coefs[2,6] %>% round(3)`.
+* An increase in *weight* for a given car has a larger absolute effect than transmission, generating a descrease of `r coefs[3,1] %>% round(2) %>% I()`(`r coefs[3,2] %>% round(2) %>% I()` - `r coefs[3,3] %>% round(2) %>% I()`) miles per gallon per unit increase. 
+* *qsec* also has a large effect on miles per gallon, with an increase of `r coefs[4,1] %>% round(2) %>% I()` (`r coefs[4,2] %>% round(2) %>% I()` - `r coefs[4,3] %>% round(2) %>% I()`) miles per gallon per 1 second increase in *qsec*.
+* The coefficients for *wt* and *qsec* are of an increased statistical significance over transmission, with $p$-values of `r coefs[3,6] %>% round(3)` and `r coefs[4,6] %>% round(3)` respectively.
+
+
+
+
+
